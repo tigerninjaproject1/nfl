@@ -28,4 +28,8 @@ p1
 
 ### adding a 2nd comment to double test.
 
+<<<<<<< HEAD
 ### Robert'scomment
+=======
+### adding comment to test - Bryan
+>>>>>>> be87903eb20f2c0d60b4ce7ce8c6f2717b071705
