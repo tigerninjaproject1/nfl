@@ -32,7 +32,7 @@ footnotelist      : no
 lineno            : no
 
 lang              : "english"
-class             : "doc"
+class             : "jou"
 output            : papaja::apa6_pdf
 ---
 
