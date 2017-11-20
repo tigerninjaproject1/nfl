@@ -1,6 +1,6 @@
 ---
-title             : "NFL 2015"
-shorttitle        : "A Statistical Analysis"
+title             : "NFL 2015: A Statistical Analysis"
+# shorttitle        : "A Statistical Analysis"
 
 author: 
   - name          : "Dave Dyer"
@@ -16,7 +16,8 @@ affiliation:
   - id            : "1"
     institution   : "Southern Methodist University"
 
-abstract: |
+# abstract: |  
+
 
 
   
@@ -25,7 +26,7 @@ abstract: |
 
 bibliography      : ["r-references.bib"]
 
-figsintext        : no
+figsintext        : yes
 figurelist        : no
 tablelist         : no
 footnotelist      : no
@@ -46,24 +47,40 @@ set.seed(42)
 ```
 
 # Abstract
-This study will investigate how average and variance of yards gained impacts a given team's ability to get touchdowns in the NFL.  This study uses the 2015 play-by-play data set available at Kaggle (https://www.kaggle.com/maxhorowitz/nflplaybyplay2015).  These data are comprised of 46,129 rows describing every NFL play run over the 2015 season, by 32 teams.  For this analysis, we will be using MySQL for data mining and basic statistics, and R for data visualization and plots.  LaTeX is used for the paper documentation.  The theory is that teams with high average yards gained, but with low variance, would get more touchdowns than those with higher average yards gained, but higher variance.  In other words, consistency is more important than big plays.  We will also comment on how the teams’ penalties relate to their ability to get more touchdowns.
+ This study investigates how average and variance of yards gained impacts a given team's ability to get touchdowns in the NFL. The theory is that teams with high average yards gained, but with low variance, would get more touchdowns than those with higher average yards gained, but higher variance.  In other words, consistency is more important than big plays.
 
-# Methods
-We report how we determined our sample size, all data exclusions (if any), all manipulations, and all measures in the study. <!-- 21-word solution (Simmons, Nelson & Simonsohn, 2012; retrieved from http://ssrn.com/abstract=2160588) -->
+# The Data
+ The data are the 2015 play-by-play records available at Kaggle (https://www.kaggle.com/maxhorowitz/nflplaybyplay2015).  These data are comprised of 46,129 rows describing every NFL play run over the 2015 season, by 32 teams.  There are 65 columns that include multiple values, including text description of the play / penalty, names of players , touchdown boolean flags, down markers, timestamps, game ids, and yardages.
 
-## Introduction
+# The Tools
+For this analysis, we use MongoDB for data mining and basic statistics, and R for data visualization and Markdown.  We originally had planned on using MySQL on bluemix, but abandoned it in favor of Mongo after some serious issues whist loading the data. 
 
-## The Data
+# EDA
+We counted the number of plays per team.  Here's that breakdown:
 
-## Procedure
+\newpage
 
-## Data analysis
-We used `r cite_r("r-references.bib")` for all our analyses.
+```{r table, echo=FALSE}
+library(knitr)
+nflwins  <- data.frame(
+  teams = c("broncos", "chargers", "oilers"),
+  wins = c(10, 12, 5), 
+  losses = c(4, 2, 9)
+)
+
+kable(nflwins, caption= "W/L Data")
+```
 
 
 # Results
 
 # Discussion
+We used `r cite_r("r-references.bib")` for all our analyses.
+
+
+# Conclusion
+
+# Appendices
 
 
 \newpage

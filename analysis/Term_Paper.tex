@@ -1,4 +1,4 @@
-\documentclass[english,jou]{apa6}
+\documentclass[english,floatsintext,jou]{apa6}
 
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
@@ -39,12 +39,6 @@
   {\begin{landscape}\begin{center}\begin{ThreePartTable}}
   {\end{ThreePartTable}\end{center}\end{landscape}}
 
-  \usepackage{ifthen} % Only add declarations when endfloat package is loaded
-  \ifthenelse{\equal{\string jou}{\string man}}{%
-   \DeclareDelayedFloatFlavor{ThreePartTable}{table} % Make endfloat play with longtable
-   % \DeclareDelayedFloatFlavor{ltable}{table} % Make endfloat play with lscape
-   \DeclareDelayedFloatFlavor{lltable}{table} % Make endfloat play with lscape & longtable
-  }{}%
 
 
 
@@ -73,7 +67,7 @@
 \fi
 \hypersetup{breaklinks=true,
             pdfauthor={},
-            pdftitle={NFL 2015},
+            pdftitle={NFL 2015: A Statistical Analysis},
             colorlinks=true,
             citecolor=blue,
             urlcolor=blue,
@@ -107,9 +101,8 @@
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
 % Essential manuscript parts
-  \title{NFL 2015}
+  \title{NFL 2015: A Statistical Analysis}
 
-  \shorttitle{A Statistical Analysis}
 
 
   \author{Dave Dyer\textsuperscript{1}, Jostein Barry-Straume\textsuperscript{1}, Robert Flamenbaum\textsuperscript{1}, \& Bryan Cikatz\textsuperscript{1}}
@@ -125,19 +118,6 @@
       \newcounter{author}
                                                                           
 
-  \abstract{This study will investigate how average and variance of yards gained
-impacts a given team's ability to get touchdowns in the NFL. This study
-uses the 2015 play-by-play data set available at Kaggle
-(\url{https://www.kaggle.com/maxhorowitz/nflplaybyplay2015}). These data
-are comprised of 46,129 rows describing every NFL play run over the 2015
-season, by 32 teams. For this analysis, we will be using MySQL for data
-mining and basic statistics, and R for data visualization and plots.
-LaTeX is used for the paper documentation. The theory is that teams with
-high average yards gained, but with low variance, would get more
-touchdowns than those with higher average yards gained, but higher
-variance. In other words, consistency is more important than big plays.
-We will also comment on how the teams' penalties relate to their ability
-to get more touchdowns.}
   
 
 
@@ -165,41 +145,65 @@ to get more touchdowns.}
 
 
 
-\section{Abstract2}\label{abstract2}
+\section{Abstract}\label{abstract}
 
-This study will investigate how average and variance of yards gained
-impacts a given team's ability to get touchdowns in the NFL. This study
-uses the 2015 play-by-play data set available at Kaggle
+This study investigates how average and variance of yards gained impacts
+a given team's ability to get touchdowns in the NFL. The theory is that
+teams with high average yards gained, but with low variance, would get
+more touchdowns than those with higher average yards gained, but higher
+variance. In other words, consistency is more important than big plays.
+
+\section{The Data}\label{the-data}
+
+The data are the 2015 play-by-play records available at Kaggle
 (\url{https://www.kaggle.com/maxhorowitz/nflplaybyplay2015}). These data
 are comprised of 46,129 rows describing every NFL play run over the 2015
-season, by 32 teams. For this analysis, we will be using MySQL for data
-mining and basic statistics, and R for data visualization and plots.
-LaTeX is used for the paper documentation. The theory is that teams with
-high average yards gained, but with low variance, would get more
-touchdowns than those with higher average yards gained, but higher
-variance. In other words, consistency is more important than big plays.
-We will also comment on how the teams' penalties relate to their ability
-to get more touchdowns.
+season, by 32 teams. There are 65 columns that include multiple values,
+including text description of the play / penalty, names of players ,
+touchdown boolean flags, down markers, timestamps, game ids, and
+yardages.
 
-\section{Methods}\label{methods}
+\section{The Tools}\label{the-tools}
 
-We report how we determined our sample size, all data exclusions (if
-any), all manipulations, and all measures in the study.
+For this analysis, we use MongoDB for data mining and basic statistics,
+and R for data visualization and Markdown. We originally had planned on
+using MySQL on bluemix, but abandoned it in favor of Mongo after some
+serious issues whist loading the data.
 
-\subsection{Introduction}\label{introduction}
+\section{EDA}\label{eda}
 
-\subsection{The Data}\label{the-data}
+We counted the number of plays per team. Here's that breakdown:
 
-\subsection{Procedure}\label{procedure}
+\newpage
 
-\subsection{Data analysis}\label{data-analysis}
+\begin{table}
 
-We used R (3.4.2, R Core Team, 2017) and the R-package \emph{papaja}
-(0.1.0.9492, Aust \& Barth, 2017) for all our analyses.
+\caption{\label{tab:table}W/L Data}
+\centering
+\begin{tabular}[t]{l|r|r}
+\hline
+teams & wins & losses\\
+\hline
+broncos & 10 & 4\\
+\hline
+chargers & 12 & 2\\
+\hline
+oilers & 5 & 9\\
+\hline
+\end{tabular}
+\end{table}
 
 \section{Results}\label{results}
 
 \section{Discussion}\label{discussion}
+
+We used R (3.4.2, R Core Team, 2017) and the R-packages \emph{knitr}
+(1.17, Xie, 2015), and \emph{papaja} (0.1.0.9492, Aust \& Barth, 2017)
+for all our analyses.
+
+\section{Conclusion}\label{conclusion}
+
+\section{Appendices}\label{appendices}
 
 \newpage
 
@@ -216,6 +220,11 @@ R Markdown}. Retrieved from \url{https://github.com/crsh/papaja}
 R Core Team. (2017). \emph{R: A language and environment for statistical
 computing}. Vienna, Austria: R Foundation for Statistical Computing.
 Retrieved from \url{https://www.R-project.org/}
+
+\hypertarget{ref-R-knitr}{}
+Xie, Y. (2015). \emph{Dynamic documents with R and knitr} (2nd ed.).
+Boca Raton, Florida: Chapman; Hall/CRC. Retrieved from
+\url{https://yihui.name/knitr/}
 
 
 
