@@ -86,6 +86,8 @@ names(teamdef) <- c("Team Name", "Defensive Play Count")
 kable(teamdef)
 # TODO:  add wins / losses per team as kable column.
 # TODO:  See if there's a way to compress this so it's not too long; maybe top 5?
+# TODO:  Add penalty count per team
+# TODO:  Add avg / std yards gained per team.
 ```
 \newpage
 
