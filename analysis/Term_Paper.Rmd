@@ -39,6 +39,12 @@ output            : papaja::apa6_pdf
 
 ```{r load_packages, include = FALSE}
 library("papaja")
+library("mongolite")
+jostein_uri <- "mongodb://admin:KFTZXKMBGIWKMWJK@sl-us-south-1-portal.12.dblayer.com:28046,sl-us-south-1-portal.17.dblayer.com:28046/admin?3t.connection.name=JosteinDB&3t.connectTimeout=10000&3t.uriVersion=2&3t.certificatePreference=RootCACert:accept_any&3t.databases=admin,compose&3t.useClientCertPassword=false&readPreference=primary&ssl=true&3t.socketTimeout=0&3t.sharded=true&3t.connectionMode=multi"
+m <- mongo(collection = "NFL", db = "test",  verbose = TRUE, url=jostein_uri, options = ssl_options(weak_cert_validation = T))
+m$count('{}')
+alldata <- m$find('{}')
+head(alldata)
 ```
 
 ```{r analysis_preferences}
@@ -50,14 +56,37 @@ set.seed(42)
  This study investigates how average and variance of yards gained impacts a given team's ability to get touchdowns in the NFL. The theory is that teams with high average yards gained, but with low variance, would get more touchdowns than those with higher average yards gained, but higher variance.  In other words, consistency is more important than big plays.
 
 # The Data
- The data are the 2015 play-by-play records available at Kaggle (https://www.kaggle.com/maxhorowitz/nflplaybyplay2015).  These data are comprised of 46,129 rows describing every NFL play run over the 2015 season, by 32 teams.  There are 65 columns that include multiple values, including text description of the play / penalty, names of players , touchdown boolean flags, down markers, timestamps, game ids, and yardages.
+ The data are the 2015 play-by-play records available at Kaggle (https://www.kaggle.com/maxhorowitz/nflplaybyplay2015).  These data are comprised of 46,129 rows describing every NFL play run over the 2015 season, by 32 teams.  There are 65 columns that include multiple values, including text description of the play / penalty, names of players , touchdown boolean flags, down markers, timestamps, game ids, and yardages.  In particular, here are the names of the fields involved for this study:
+ 
 
 # The Tools
 For this analysis, we use MongoDB for data mining and basic statistics, and R for data visualization and Markdown.  We originally had planned on using MySQL on bluemix, but abandoned it in favor of Mongo after some serious issues whist loading the data. 
 
 # EDA
-We counted the number of plays per team.  Here's that breakdown:
+We counted the number of offensive plays per team.  Here's that breakdown:
+```{r offensive_plays, echo=FALSE}
+library("dplyr")
+library("knitr")
+teamoff <- alldata %>%
+  group_by(posteam) %>%
+  summarize(off_plays = n()) %>% 
+  arrange(desc(off_plays)) %>% 
+  na.omit()
+names(teamoff) <- c("Team Name", "Offensive Play Count")
+kable(teamoff)
+```
 
+and we also analyzed the # of defensive plays per team:
+```{r defensive_plays, echo = FALSE} 
+teamdef <- alldata %>%
+  group_by(DefensiveTeam) %>%
+  summarize(def_plays = n()) %>%
+  na.omit()
+names(teamdef) <- c("Team Name", "Defensive Play Count")
+kable(teamdef)
+# TODO:  add wins / losses per team as kable column.
+# TODO:  See if there's a way to compress this so it's not too long; maybe top 5?
+```
 \newpage
 
 ```{r table, echo=FALSE}
