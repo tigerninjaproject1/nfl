@@ -75,8 +75,9 @@ teamoff <- alldata %>%
   na.omit()
 names(teamoff) <- c("Team Name", "Offensive Play Count")
 kable(teamoff)
+```
 
-# ***Inserting mongolite queries here***
+```{r mongolite_queries, include=FALSE}
 # Returns all plays that scored a touchdown with positive yard gains,
 # grouping by team and count the plays per team, sorted in alphabetical order
 ydsGainTD <- m$aggregate('[
@@ -84,8 +85,7 @@ ydsGainTD <- m$aggregate('[
     { "$group": { "_id": "$posteam" , "count": { "$sum": 1 } } },
     { "$sort": { "_id": 1} }
   ]')
-
-kable(glimpse(as_tibble(ydsGainTD)))
+ydsGainTD.tibble <- ydsGainTD$`_id`
 
 # Returns average yards gained and average number of touchdowns per team
 avgYdsTds <- m$aggregate('[
@@ -95,8 +95,7 @@ avgYdsTds <- m$aggregate('[
       "tdsAvg": { "$avg": "$Touchdown" }
       }
   }]')
-
-kable(glimpse(as_tibble(avgYdsTds)))
+avgYdsTds.tibble <- avgYdsTds$`_id`
 
 # Robert's query
 # Returns sum of touchdowns and sum of penalty yards per team
@@ -108,7 +107,6 @@ sumTdsPenYds <- m$aggregate('[
     }
   }]')
 sumTdsPenYds.tibble <- sumTdsPenYds$`_id`
-kable(glimpse(as_tibble(sumTdsPenYds.tibble)))
 
 # Robert's query
 # Returns sum of touchdowns by quarter per team
@@ -119,6 +117,12 @@ sumTdsPerQtr <- m$aggregate('[
     }
   }]')
 sumTdsPerQtr.tibble <- sumTdsPerQtr$`_id`
+```
+
+```{r queries_output, echo=FALSE}
+kable(glimpse(as_tibble(ydsGainTD.tibble)))
+kable(glimpse(as_tibble(avgYdsTds.tibble)))
+kable(glimpse(as_tibble(sumTdsPenYds.tibble)))
 kable(glimpse(as_tibble(sumTdsPerQtr.tibble)))
 ```
 
