@@ -107,8 +107,8 @@ sumTdsPenYds <- m$aggregate('[
       "Penalty_Yards": { "$sum": "$Penalty.Yards" }
     }
   }]')
-
-kable(glimpse(as_tibble(sumTdsPenYds)))
+sumTdsPenYds.tibble <- sumTdsPenYds$`_id`
+kable(glimpse(as_tibble(sumTdsPenYds.tibble)))
 
 # Robert's query
 # Returns sum of touchdowns by quarter per team
@@ -118,8 +118,8 @@ sumTdsPerQtr <- m$aggregate('[
     "Touchdown": { "$sum": "$Touchdown" }
     }
   }]')
-
-kable(glimpse(as_tibble(sumTdsPerQtr)))
+sumTdsPerQtr.tibble <- sumTdsPerQtr$`_id`
+kable(glimpse(as_tibble(sumTdsPerQtr.tibble)))
 ```
 
 and we also analyzed the # of defensive plays per team:
