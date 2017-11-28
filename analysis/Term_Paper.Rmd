@@ -67,6 +67,7 @@ We counted the number of offensive plays per team.  Here's that breakdown:
 ```{r offensive_plays, echo=FALSE}
 library("dplyr")
 library("knitr")
+library("tibble")
 teamoff <- alldata %>%
   group_by(posteam) %>%
   summarize(off_plays = n()) %>% 
@@ -74,6 +75,51 @@ teamoff <- alldata %>%
   na.omit()
 names(teamoff) <- c("Team Name", "Offensive Play Count")
 kable(teamoff)
+
+# ***Inserting mongolite queries here***
+# Returns all plays that scored a touchdown with positive yard gains,
+# grouping by team and count the plays per team, sorted in alphabetical order
+ydsGainTD <- m$aggregate('[
+		{ "$match": { "Yards.Gained": { "$gt": 0 }, "Touchdown": { "$gt": 0 } } },
+    { "$group": { "_id": "$posteam" , "count": { "$sum": 1 } } },
+    { "$sort": { "_id": 1} }
+  ]')
+
+kable(glimpse(as_tibble(ydsGainTD)))
+
+# Returns average yards gained and average number of touchdowns per team
+avgYdsTds <- m$aggregate('[
+  { "$group": {
+      "_id": "$posteam",
+      "ydsGainAvg": { "$avg": "$Yards.Gained" }, 
+      "tdsAvg": { "$avg": "$Touchdown" }
+      }
+  }]')
+
+kable(glimpse(as_tibble(avgYdsTds)))
+
+# Robert's query
+# Returns sum of touchdowns and sum of penalty yards per team
+sumTdsPenYds <- m$aggregate('[
+  { "$group": { 
+      "_id": { "posteam": "$posteam"},
+      "Touchdown": { "$sum": "$Touchdown" },
+      "Penalty_Yards": { "$sum": "$Penalty.Yards" }
+    }
+  }]')
+
+kable(glimpse(as_tibble(sumTdsPenYds)))
+
+# Robert's query
+# Returns sum of touchdowns by quarter per team
+sumTdsPerQtr <- m$aggregate('[
+  { "$group": { 
+    "_id": {"Team": "$posteam", "Quarter": "$qtr"},
+    "Touchdown": { "$sum": "$Touchdown" }
+    }
+  }]')
+
+kable(glimpse(as_tibble(sumTdsPerQtr)))
 ```
 
 and we also analyzed the # of defensive plays per team:
