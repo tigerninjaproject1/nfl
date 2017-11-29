@@ -16,6 +16,7 @@ library("mongolite")
 library("dplyr") 
 library("knitr")
 library("tibble")
+library("kableExtra")
 jostein_uri <- "mongodb://admin:KFTZXKMBGIWKMWJK@sl-us-south-1-portal.12.dblayer.com:28046,sl-us-south-1-portal.17.dblayer.com:28046/admin?3t.connection.name=JosteinDB&3t.connectTimeout=10000&3t.uriVersion=2&3t.certificatePreference=RootCACert:accept_any&3t.databases=admin,compose&3t.useClientCertPassword=false&readPreference=primary&ssl=true&3t.socketTimeout=0&3t.sharded=true&3t.connectionMode=multi"
 m <- mongo(collection = "NFL", db = "test",  verbose = TRUE, url=jostein_uri, options = ssl_options(weak_cert_validation = T))
 m$count('{}')
@@ -97,15 +98,15 @@ We used Mongodb hosted on IBM Bluemix and Rstudio with Rmarkdown for the analysi
 words <- c("Bluemix Storage", "Data Size", "Database Server", "Database Version", "Database Location", "Cloud Hosting Service", "Processors", "Memory")
 numbers <- c("1GB", "14.3MB", "Compose for MongoDB-jj", "3.2.11", "US South", "IBM Bluemix", "1 x 2.0 GHz Cores", "1GB RAM")
 specs <- data.frame( "Parameter"=words,"Specification"= numbers)
-specs
-#kable(specs, col.names = c(, ))
+kable(specs, format="latex") %>% kable_styling(latex_options="striped", font_size=8)
 ```
 
 # Analysis
 
-When the spread of per-team yards-per-play is viewed in a quartile plot, it is easy to see that there is not a great amount of variance between the medians.  This is about what we'd expect, since the NFL is incredibly competitive, and self-normalizing due to constant trading, strategy and balance.  If one team was clearly dominant in median yards per play, we would expect that team to dominate the entire season, which is not the case.  However, there is quite a bit of difference in the outer quartiles and in the number of outliers.  These data support our investigation into whether or not a large variance changes team performance.  
+When the spread of per-team yards-per-play is viewed in a team-specific box \& whisker plot, it is easy to see that there is not a great amount of variance between the medians; most teams are between 5 and 6 median yards per play, with handful of teams above and below this range.  
 
-```{r figure1, echo = FALSE, fig.pos="H", fig.width=8}
+
+```{r figure1, echo = FALSE}
 library(ggplot2)
 bygame <- alldata %>%
   group_by_at(vars(posteam, GameID)) %>%
@@ -115,6 +116,12 @@ bygame <- alldata %>%
 bp1 <- ggplot(data = bygame, aes(posteam, x = posteam, y = avgYdsPerGamePerTeam))
 bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + ggtitle("Median Yards per Play (by Team)")
 ```  
+
+This is about what we'd expect, since the NFL is incredibly competitive, and self-normalizing due to constant trading, strategy, talent balance, and strategic positional matchups that, on balance, make the league pretty competitive.  
+
+If one team were overl dominant in median yards per play, we would expect that team to dominate the entire season, year after year, which is not the case.  However, there *is* quite a bit of difference in the outer quartiles and in the number of outliers.  These data support our investigation into whether or not a large variance changes team performance.
+
+## Yards v. Touchdowns 
 To start, we decided to plot number of touchdowns against yards gained (per game).  We expect to see a linear trend upwards that illustrates the basic football concept of more yards = more points.  As you can see, there appears to be an upward trend -- that is, as yards increase, so does the number of touchdowns.  
 
 ```{r figure2, echo = FALSE, fig.pos="H"}
@@ -124,14 +131,19 @@ p2 + xlab("Touchdowns") + ylab("Yards") + ggtitle("Touchdowns vs. Yards (Per Gam
 
 ```  
 
-However, the theory of this paper is that, if yards per play is normalized, the lower variance teams will get more touchdowns per game.  So it is important to know how the non-normalized standard deviation of yards per play relates to touchdowns per game on average.  The below plot shows that it is relatively static, with perhaps a slight rise as standard deviations go up.
+However, the theory of this paper is that, if yards per play is normalized, the lower variance teams will get more touchdowns per game.  So it is important to know how the non-normalized standard deviation of yards per play relates to touchdowns per game on average.
+
+## Std Dev v. Touchdowns
+The below plot shows that it is relatively static, with perhaps a slight rise as standard deviations go up.  
+
 
 ```{r figure3, echo = FALSE, fig.pos="H"}
 ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, group = "_id.GameID")) + 
   geom_point() + xlab("Touchdowns") + ylab("StDev in Yards (Per Game)") + ggtitle("Touchdowns vs. Variance in Yards Per Game")
 ```
 
-However, the data are not normalized, and in order to understand the impact a normalization routine would have on the data, we can examine the relationship between the standard deviation of yards per play and the total yards per game.  We expect that, as yards per game goes up, so does total yards, but that is not what's interesting about this plot.  Note that it's not uniform linear growth as the standard deviation and the yards per game increase.  The spread increases as yards and standard deviation increase, indicating that you get more yards with more variance, but you also run the risk of not getting as many yards (presumably because you're taking more chances, and you get higher rewards for higher risk... sometimes.)
+However, the data are not normalized, and in order to understand the impact a normalization routine would have on the data, we can examine the relationship between the standard deviation of yards per play and the total yards per game.  We expect that, as yards per game goes up, so does total yards, but that is not what's interesting about this plot.  Note that it's not uniform linear growth as the standard deviation and the yards per game increase.  The spread increases as yards and standard deviation increase, indicating that you get more yards with more variance, but you also run the risk of not getting as many yards (presumably because you're taking more chances, and you get higher rewards for higher risk... sometimes.)  
+
 
 ```{r figure4, echo = FALSE, fig.pos="H"}
 ggplot(ydsGainVTd, aes(SDYdsGain, SumYdsGain, group = "_id.GameID")) + 
