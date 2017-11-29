@@ -82,8 +82,11 @@ ydsGainTD.tibble <- ydsGainTD
 avgYdsTds <- m$aggregate('[
   { "$group": {
       "_id": "$posteam",
-      "ydsGainAvg": { "$avg": "$Yards.Gained" }, 
-      "tdsAvg": { "$avg": "$Touchdown" }
+      "ydsGainAvg": { "$avg": "$Yards.Gained" },
+      "ydsGainSd": { "$stdDevPop": "$Yards.Gained"},
+      "ydsGainSdSample": { "$stdDevSamp": "$Yards.Gained"},
+      "tdsAvg": { "$avg": "$Touchdown" },
+      "tdsSum": { "$sum": "$Touchdown" }
       }
   }]')
 avgYdsTds.tibble <- avgYdsTds$`_id`
@@ -149,7 +152,15 @@ For this analysis, we use MongoDB for data mining and basic statistics, and R fo
 
 We used Mongodb hosted on IBM Bluemix and Rstudio with Rmarkdown for the analysis, visualization and writeup.
 
+```{r tools, echo = FALSE}
+words <- c("Bluemix Storage", "Data Size", "Database Server", "Database Version", "Database Location", "Cloud Hosting Service", "Processors", "Memory")
+numbers <- c("1GB", "14.3MB", "Compose for MongoDB-jj", "3.2.11", "US South", "IBM Bluemix", "1 x 2.0 GHz Cores", "1GB RAM")
+specs <- data.frame("Bluemix Technical Specifications"= words, "Specifications"= numbers)
+kable(specs)
+```
+
 # Results
+<!-- # TODO:  Implementation using R scripts: Write some R scripts to analyze data essentially. Make some plots. Does high variance of yards gained mean less touchdowns compared to teams with low variance? Show this with plots. -->
 
 # Discussion
 We used `r cite_r("r-references.bib")` for all our analyses.
