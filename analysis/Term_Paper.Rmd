@@ -140,7 +140,8 @@ kable(specs)
 # Analysis
 
 <!-- # TODO:  Implementation using R scripts: Write some R scripts to analyze data essentially. Make some plots. Does high variance of yards gained mean less touchdowns compared to teams with low variance? Show this with plots. -->
-To start, we decided to plot number of touchdowns against yards gained (per game).  We expect to see a linear trend upwards that illustrates the basic football concept of more  
+To start, we decided to plot number of touchdowns against yards gained (per game).  We expect to see a linear trend upwards that illustrates the basic football concept of more yards = more points.  As you can see, there appears to be an upward trend -- that is, as yards increase, so does the number of touchdowns.
+
 ```{r plot1, echo=FALSE}
 library(ggplot2)
 bygame <- alldata %>%
@@ -151,7 +152,6 @@ bygame <- alldata %>%
 bp1 <- ggplot(data = bygame, aes(posteam, x = posteam, y = avgYdsPerGamePerTeam))
 bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + ggtitle("Median Yards per Play (by Team)")
 
-procglm
 ```
 
 ```{r plot2, echo = FALSE}
