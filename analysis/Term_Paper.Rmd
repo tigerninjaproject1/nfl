@@ -150,6 +150,7 @@ p2
 
 ```{r}
 ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, group = "_id.GameID")) + geom_point()
+ggplot(ydsGainVTd, aes(SumYdsGain, SDYdsGain, group = "_id.GameID")) + geom_point()
 ```
 
 # Discussion
