@@ -40,16 +40,14 @@ output            : papaja::apa6_pdf
 ```{r load_packages, include = FALSE}
 library("papaja")
 library("mongolite")
+library("dplyr") 
+library("knitr")
+library("tibble")
 jostein_uri <- "mongodb://admin:KFTZXKMBGIWKMWJK@sl-us-south-1-portal.12.dblayer.com:28046,sl-us-south-1-portal.17.dblayer.com:28046/admin?3t.connection.name=JosteinDB&3t.connectTimeout=10000&3t.uriVersion=2&3t.certificatePreference=RootCACert:accept_any&3t.databases=admin,compose&3t.useClientCertPassword=false&readPreference=primary&ssl=true&3t.socketTimeout=0&3t.sharded=true&3t.connectionMode=multi"
 m <- mongo(collection = "NFL", db = "test",  verbose = TRUE, url=jostein_uri, options = ssl_options(weak_cert_validation = T))
-m$count('{}')
-alldata <- m$find('{}')
-head(alldata)
-```
-
-```{r analysis_preferences}
-# Seed for random number generation
-set.seed(42)
+# m$count('{}')
+# alldata <- m$find('{}')
+# head(alldata)
 ```
 
 # Abstract
@@ -58,24 +56,20 @@ set.seed(42)
 # The Data
  The data are the 2015 play-by-play records available at Kaggle (https://www.kaggle.com/maxhorowitz/nflplaybyplay2015).  These data are comprised of 46,129 rows describing every NFL play run over the 2015 season, by 32 teams.  There are 65 columns that include multiple values, including text description of the play / penalty, names of players , touchdown boolean flags, down markers, timestamps, game ids, and yardages.  In particular, here are the names of the fields involved for this study:
  
-
 # The Tools
 For this analysis, we use MongoDB for data mining and basic statistics, and R for data visualization and Markdown.  We originally had planned on using MySQL on bluemix, but abandoned it in favor of Mongo after some serious issues whist loading the data. 
 
-# EDA
-We counted the number of offensive plays per team.  Here's that breakdown:
-```{r offensive_plays, echo=FALSE}
-library("dplyr")
-library("knitr")
-library("tibble")
-teamoff <- alldata %>%
-  group_by(posteam) %>%
-  summarize(off_plays = n()) %>% 
-  arrange(desc(off_plays)) %>% 
-  na.omit()
-names(teamoff) <- c("Team Name", "Offensive Play Count")
-kable(teamoff)
-```
+<!-- # EDA -->
+<!-- We counted the number of offensive plays per team.  Are the top 10 teams, by play count: -->
+<!-- ```{r offensive_plays, echo=FALSE} -->
+<!-- teamoff <- alldata %>% -->
+<!--   group_by(posteam) %>% -->
+<!--   summarize(off_plays = n()) %>%  -->
+<!--   arrange(desc(off_plays)) %>%  -->
+<!--   na.omit() -->
+<!-- names(teamoff) <- c("Team Name", "Offensive Play Count") -->
+<!-- kable(teamoff[0:10,]) -->
+<!-- ``` -->
 
 ```{r mongolite_queries, include=FALSE}
 # Returns all plays that scored a touchdown with positive yard gains,
@@ -85,7 +79,7 @@ ydsGainTD <- m$aggregate('[
     { "$group": { "_id": "$posteam" , "count": { "$sum": 1 } } },
     { "$sort": { "_id": 1} }
   ]')
-ydsGainTD.tibble <- ydsGainTD$`_id`
+ydsGainTD.tibble <- ydsGainTD
 
 # Returns average yards gained and average number of touchdowns per team
 avgYdsTds <- m$aggregate('[
@@ -120,37 +114,40 @@ sumTdsPerQtr.tibble <- sumTdsPerQtr$`_id`
 ```
 
 ```{r queries_output, echo=FALSE}
-kable(glimpse(as_tibble(ydsGainTD.tibble)))
-kable(glimpse(as_tibble(avgYdsTds.tibble)))
-kable(glimpse(as_tibble(sumTdsPenYds.tibble)))
-kable(glimpse(as_tibble(sumTdsPerQtr.tibble)))
+kable(cbind(ydsGainTD[0:10,],
+            avgYdsTds[0:10,],
+            sumTdsPenYds[0:10,],
+            sumTdsPerQtr[0:10,])
+      )
+
+#kable(glimpse(as_tibble(sumTdsPenYds.tibble)))
+#kable(glimpse(as_tibble(sumTdsPerQtr.tibble)))
 ```
 
-and we also analyzed the # of defensive plays per team:
-```{r defensive_plays, echo = FALSE} 
-teamdef <- alldata %>%
-  group_by(DefensiveTeam) %>%
-  summarize(def_plays = n()) %>%
-  na.omit()
-names(teamdef) <- c("Team Name", "Defensive Play Count")
-kable(teamdef)
-# TODO:  add wins / losses per team as kable column.
-# TODO:  See if there's a way to compress this so it's not too long; maybe top 5?
-# TODO:  Add penalty count per team
-# TODO:  Add avg / std yards gained per team.
-```
-\newpage
+<!-- and we also analyzed the # of defensive plays per team: -->
+<!-- ```{r defensive_plays, echo = FALSE}  -->
+<!-- teamdef <- alldata %>% -->
+<!--   group_by(DefensiveTeam) %>% -->
+<!--   summarize(def_plays = n()) %>% -->
+<!--   na.omit() -->
+<!-- names(teamdef) <- c("Team Name", "Defensive Play Count") -->
+<!-- kable(teamdef[0:10,]) -->
+<!-- # TODO:  add wins / losses per team as kable column. -->
+<!-- # TODO:  See if there's a way to compress this so it's not too long; maybe top 5? -->
+<!-- # TODO:  Add penalty count per team -->
+<!-- # TODO:  Add avg / std yards gained per team. -->
+<!-- ``` -->
 
-```{r table, echo=FALSE}
-library(knitr)
-nflwins  <- data.frame(
-  teams = c("broncos", "chargers", "oilers"),
-  wins = c(10, 12, 5), 
-  losses = c(4, 2, 9)
-)
+<!-- ```{r table, echo=FALSE} -->
+<!-- library(knitr) -->
+<!-- nflwins  <- data.frame( -->
+<!--   teams = c("broncos", "chargers", "oilers"), -->
+<!--   wins = c(10, 12, 5),  -->
+<!--   losses = c(4, 2, 9) -->
+<!-- ) -->
 
-kable(nflwins, caption= "W/L Data")
-```
+<!-- kable(nflwins, caption= "W/L Data") -->
+<!-- ``` -->
 
 
 # Results
