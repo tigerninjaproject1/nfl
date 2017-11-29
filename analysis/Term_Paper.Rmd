@@ -45,9 +45,9 @@ library("knitr")
 library("tibble")
 jostein_uri <- "mongodb://admin:KFTZXKMBGIWKMWJK@sl-us-south-1-portal.12.dblayer.com:28046,sl-us-south-1-portal.17.dblayer.com:28046/admin?3t.connection.name=JosteinDB&3t.connectTimeout=10000&3t.uriVersion=2&3t.certificatePreference=RootCACert:accept_any&3t.databases=admin,compose&3t.useClientCertPassword=false&readPreference=primary&ssl=true&3t.socketTimeout=0&3t.sharded=true&3t.connectionMode=multi"
 m <- mongo(collection = "NFL", db = "test",  verbose = TRUE, url=jostein_uri, options = ssl_options(weak_cert_validation = T))
-# m$count('{}')
-# alldata <- m$find('{}')
-# head(alldata)
+m$count('{}')
+alldata <- m$find('{}')
+head(alldata)
 ```
 
 # Abstract
@@ -161,6 +161,19 @@ kable(specs)
 
 # Results
 <!-- # TODO:  Implementation using R scripts: Write some R scripts to analyze data essentially. Make some plots. Does high variance of yards gained mean less touchdowns compared to teams with low variance? Show this with plots. -->
+```{r}
+library(ggplot2)
+bygame <- alldata %>%
+  group_by_at(vars(posteam, GameID)) %>%
+  summarize(TDgameSum = sum(Touchdown),
+            avgYdsPerGamePerTeam = mean(Yards$Gained),
+            sdYdsPerGamePerTeam = sd(Yards$Gained))
+bp1 <- ggplot(data = bygame, aes(posteam, x = posteam, y = avgYdsPerGamePerTeam))
+bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Offensive Team")
+
+
+```
+
 
 # Discussion
 We used `r cite_r("r-references.bib")` for all our analyses.
