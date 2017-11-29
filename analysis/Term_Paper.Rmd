@@ -91,7 +91,6 @@ avgYdsTds <- m$aggregate('[
   }]')
 avgYdsTds.tibble <- avgYdsTds$`_id`
 
-# Robert's query
 # Returns sum of touchdowns and sum of penalty yards per team
 sumTdsPenYds <- m$aggregate('[
   { "$group": { 
@@ -102,7 +101,6 @@ sumTdsPenYds <- m$aggregate('[
   }]')
 sumTdsPenYds.tibble <- sumTdsPenYds$`_id`
 
-# Robert's query
 # Returns sum of touchdowns by quarter per team
 sumTdsPerQtr <- m$aggregate('[
   { "$group": { 
@@ -111,13 +109,22 @@ sumTdsPerQtr <- m$aggregate('[
     }
   }]')
 sumTdsPerQtr.tibble <- sumTdsPerQtr$`_id`
+
+ydsGainVTd <- m$aggregate('[
+  { "$group": {
+      "_id": { "GameID": "$GameID", "PosTeam":"$posteam"},
+      "SumTDs": { "$sum": "$Touchdown"},
+      "SumYdsGain": { "$sum": "$Yards.Gained"}
+  }}]')
+ydsGainVTd.tibble <- ydsGainVTd$`_id`
 ```
 
 ```{r queries_output, echo=FALSE}
 kable(cbind(ydsGainTD[0:10,],
             avgYdsTds[0:10,],
             sumTdsPenYds.tibble[0:10,],
-            sumTdsPerQtr.tibble[0:10,])
+            sumTdsPerQtr.tibble[0:10,],
+            ydsGainVTd.tibble[0:10,])
       )
 # TODO: rename the columns here to make this understandable.
 ```
@@ -164,7 +171,6 @@ kable(specs)
 
 # Discussion
 We used `r cite_r("r-references.bib")` for all our analyses.
-
 
 # Conclusion
 
