@@ -54,10 +54,11 @@ head(alldata)
  This study investigates how average and variance of yards gained impacts a given team's ability to get touchdowns in the NFL. The theory is that teams with high average yards gained, but with low variance, would get more touchdowns than those with higher average yards gained, but higher variance.  In other words, consistency is more important than big plays.
 
 # Related Work
-There are two related works that also use NFL play-by-play data to ascertain trends in yardage and touchdowns.  The first, "Underrated NFL Stats" [@Iyer]
+There are two related works that also use NFL play-by-play data to ascertain trends in yardage and touchdowns.  The first, "Underrated NFL Stats" [@Iyer] looks into the big plays allowed by the defense and the teams with the best / worst big plays allowed stats.  The second, "How to Quantify the NFL" [@Kelly] looks at big play differentials, but doesn't actually do any statistical analysis.  Our analysis focuses on the variance of the yardage per play numbers and measures the efficacy of teams by measuring the touchdowns from each game & team.
+
 
 # Introduction
- The data are the 2015 play-by-play records available at Kaggle (https://www.kaggle.com/maxhorowitz/nflplaybyplay2015).  These data are comprised of 46,129 rows describing every NFL play run over the 2015 season, by 32 teams.  There are 65 columns that include multiple values, including text description of the play / penalty, names of players , touchdown boolean flags, down markers, timestamps, game ids, and yardages.  In particular, here are the names of the fields involved for this study:
+The data are the 2015 play-by-play records available at Kaggle (https://www.kaggle.com/maxhorowitz/nflplaybyplay2015).  These data are comprised of 46,129 rows describing every NFL play run over the 2015 season, by 32 teams.  There are 65 columns that include multiple values, including text description of the play / penalty, names of players , touchdown boolean flags, down markers, timestamps, game ids, and yardages.  For the purposes of this study, we focused on the average and variance of yards per play, by team, and measured the 'success' of the team based on the count of touchdowns per game.  
 
 ```{r mongolite_queries, include=FALSE}
 # Returns all plays that scored a touchdown with positive yard gains,
@@ -125,20 +126,21 @@ ydsGainVTd <- m$aggregate('[
 # The Tools
 For this analysis, we use MongoDB for data mining and basic statistics, and R for data visualization and Markdown.  We originally had planned on using MySQL on bluemix, but abandoned it in favor of Mongo after some serious issues whist loading the data. 
 
-We used Mongodb hosted on IBM Bluemix and Rstudio with Rmarkdown for the analysis, visualization and writeup.
+We used Mongodb hosted on IBM Bluemix and Rstudio with Rmarkdown for the analysis, visualization and writeup.  We used many r packages to support our analysis and data mining `r cite_r("r-references.bib")`.  For data mining, we used the mongolite package (https://jeroen.github.io/mongolite/) to connect to the bluemix data set and, where possible, we used mongo to do the statistical analysis in favor of R.  Below are the specifications for the Mongo Database:
 
-```{r tools, include = FALSE}
+```{r tools, echo = FALSE}
 words <- c("Bluemix Storage", "Data Size", "Database Server", "Database Version", "Database Location", "Cloud Hosting Service", "Processors", "Memory")
 numbers <- c("1GB", "14.3MB", "Compose for MongoDB-jj", "3.2.11", "US South", "IBM Bluemix", "1 x 2.0 GHz Cores", "1GB RAM")
 specs <- data.frame("Bluemix Technical Specifications"= words, "Specifications"= numbers)
-```
-
-```{r specTable, echo = FALSE}
 kable(specs)
 ```
 
+
+
 # Analysis
+
 <!-- # TODO:  Implementation using R scripts: Write some R scripts to analyze data essentially. Make some plots. Does high variance of yards gained mean less touchdowns compared to teams with low variance? Show this with plots. -->
+To start, we decided to plot number of touchdowns against yards gained (per game).  We expect to see a linear trend upwards that illustrates the basic football concept of more  
 ```{r plot1, echo=FALSE}
 library(ggplot2)
 bygame <- alldata %>%
@@ -148,7 +150,8 @@ bygame <- alldata %>%
             sdYdsPerGamePerTeam = sd(Yards$Gained))
 bp1 <- ggplot(data = bygame, aes(posteam, x = posteam, y = avgYdsPerGamePerTeam))
 bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + ggtitle("Median Yards per Play (by Team)")
-# TODO: Need some words describing WTF this is.
+
+procglm
 ```
 
 ```{r plot2, echo = FALSE}
@@ -172,7 +175,7 @@ ggplot(ydsGainVTd, aes(SumYdsGain, SDYdsGain, group = "_id.GameID")) +
 
 
 # Discussion
-We used `r cite_r("r-references.bib")` for all our analyses.
+We used  for all our analyses.
 
 # Conclusion
 
