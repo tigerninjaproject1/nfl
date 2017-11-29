@@ -96,16 +96,16 @@ We used Mongodb hosted on IBM Bluemix and Rstudio with Rmarkdown for the analysi
 ```{r tools, echo = FALSE}
 words <- c("Bluemix Storage", "Data Size", "Database Server", "Database Version", "Database Location", "Cloud Hosting Service", "Processors", "Memory")
 numbers <- c("1GB", "14.3MB", "Compose for MongoDB-jj", "3.2.11", "US South", "IBM Bluemix", "1 x 2.0 GHz Cores", "1GB RAM")
-specs <- data.frame( words, numbers)
+specs <- data.frame( "Parameter"=words,"Specification"= numbers)
 specs
-#kable(specs, col.names = c("Bluemix Technical Specifications", "Specifications"))
+#kable(specs, col.names = c(, ))
 ```
 
 # Analysis
 
 When the spread of per-team yards-per-play is viewed in a quartile plot, it is easy to see that there is not a great amount of variance between the medians.  This is about what we'd expect, since the NFL is incredibly competitive, and self-normalizing due to constant trading, strategy and balance.  If one team was clearly dominant in median yards per play, we would expect that team to dominate the entire season, which is not the case.  However, there is quite a bit of difference in the outer quartiles and in the number of outliers.  These data support our investigation into whether or not a large variance changes team performance.  
 
-```{r figure1, echo = FALSE, fig.pos="H"}
+```{r figure1, echo = FALSE, fig.pos="H", fig.width=8}
 library(ggplot2)
 bygame <- alldata %>%
   group_by_at(vars(posteam, GameID)) %>%
@@ -124,20 +124,21 @@ p2 + xlab("Touchdowns") + ylab("Yards") + ggtitle("Touchdowns vs. Yards (Per Gam
 
 ```  
 
-Text describing figure 3  
+However, the theory of this paper is that, if yards per play is normalized, the lower variance teams will get more touchdowns per game.  So it is important to know how the non-normalized standard deviation of yards per play relates to touchdowns per game on average.  The below plot shows that it is relatively static, with perhaps a slight rise as standard deviations go up.
 
 ```{r figure3, echo = FALSE, fig.pos="H"}
 ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, group = "_id.GameID")) + 
   geom_point() + xlab("Touchdowns") + ylab("StDev in Yards (Per Game)") + ggtitle("Touchdowns vs. Variance in Yards Per Game")
 ```
 
-Then we finally settled on figure 4 to illustrate the relationship between Yards and Standard deviation.  Note that ti's not uniform linear growth, and that impacts the ability to discern whether or not the touchdowns / sd plot is a reliable measure of the underlying relationship.
+However, the data are not normalized, and in order to understand the impact a normalization routine would have on the data, we can examine the relationship between the standard deviation of yards per play and the total yards per game.  We expect that, as yards per game goes up, so does total yards, but that is not what's interesting about this plot.  Note that it's not uniform linear growth as the standard deviation and the yards per game increase.  The spread increases as yards and standard deviation increase, indicating that you get more yards with more variance, but you also run the risk of not getting as many yards (presumably because you're taking more chances, and you get higher rewards for higher risk... sometimes.)
 
 ```{r figure4, echo = FALSE, fig.pos="H"}
-ggplot(ydsGainVTd, aes(SumYdsGain, SDYdsGain, group = "_id.GameID")) + 
-  geom_point() + xlab("Yards") + ylab("StDev(Yards)") + ggtitle("Yards vs. StDev(Yards) per Game")
+ggplot(ydsGainVTd, aes(SDYdsGain, SumYdsGain, group = "_id.GameID")) + 
+  geom_point() + ylab("Yards") + xlab("StDev(Yards)") + ggtitle("Yards vs. StDev(Yards) per Game")
 ```
-Text summing up all the things.
+ 
+Insert normalization thing here, then talk about it.
 
 # Conclusion
 
@@ -147,6 +148,7 @@ This is where we wrap up all the things and make our conclusion.
 Put code here.
 
 # References
+Insert references here.
 ```{r create_r-references}
 #r_refs(file = "r-references.bib")
 ```
