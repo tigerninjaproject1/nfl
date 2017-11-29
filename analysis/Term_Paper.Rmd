@@ -1,36 +1,17 @@
 ---
 title             : "NFL 2015: A Statistical Analysis"
-# shorttitle        : "A Statistical Analysis"
-
-author: 
-  - name          : "Dave Dyer"
-    affiliation   : "1"
-  - name          : "Jostein Barry-Straume"
-    affiliation   : "1"
-  - name          : "Robert Flamenbaum"
-    affiliation   : "1" 
-  - name          : "Bryan Cikatz"
-    affiliation   : "1"
-
-affiliation:
-  - id            : "1"
-    institution   : "Southern Methodist University"
-
-bibliography      : ["r-references.bib", "ext-references.bib"]
-
-figsintext        : yes
-figurelist        : no
-tablelist         : no
-footnotelist      : no
-lineno            : no
-
-lang              : "english"
-class             : "jou"
-output            : papaja::apa6_pdf
+author            : "Dave, Jostein, Bryan and Robert"
+date              : "November 28, 2017"
+output: 
+  pdf_document: 
+    pandoc_args: [
+      "-V", "classoption=twocolumn"
+      ]
 ---
 
+
 ```{r load_packages, include = FALSE}
-library("papaja")
+#library("papaja")
 library("mongolite")
 library("dplyr") 
 library("knitr")
@@ -108,7 +89,7 @@ ydsGainVTd <- m$aggregate('[
 # The Tools
 For this analysis, we use MongoDB for data mining and basic statistics, and R for data visualization and Markdown.  We originally had planned on using MySQL on bluemix, but abandoned it in favor of Mongo after some serious issues whist loading the data.  
 
-We used Mongodb hosted on IBM Bluemix and Rstudio with Rmarkdown for the analysis, visualization and writeup.  We used many r packages to support our analysis and data mining `r cite_r("r-references.bib")`.  For data mining, we used the mongolite package (https://jeroen.github.io/mongolite/) to connect to the bluemix data set and, where possible, we used mongo to do the statistical analysis in favor of R.  Below are the specifications for the Mongo Database:  
+We used Mongodb hosted on IBM Bluemix and Rstudio with Rmarkdown for the analysis, visualization and writeup.  We used many r packages to support our analysis and data mining.  For data mining, we used the mongolite package (https://jeroen.github.io/mongolite/) to connect to the bluemix data set and, where possible, we used mongo to do the statistical analysis in favor of R.  Below are the specifications for the Mongo Database:  
   
   
 
@@ -116,14 +97,15 @@ We used Mongodb hosted on IBM Bluemix and Rstudio with Rmarkdown for the analysi
 words <- c("Bluemix Storage", "Data Size", "Database Server", "Database Version", "Database Location", "Cloud Hosting Service", "Processors", "Memory")
 numbers <- c("1GB", "14.3MB", "Compose for MongoDB-jj", "3.2.11", "US South", "IBM Bluemix", "1 x 2.0 GHz Cores", "1GB RAM")
 specs <- data.frame( words, numbers)
-kable(specs, col.names = c("Bluemix Technical Specifications", "Specifications"))
+specs
+#kable(specs, col.names = c("Bluemix Technical Specifications", "Specifications"))
 ```
 
 # Analysis
 
 When the spread of per-team yards-per-play is viewed in a quartile plot, it is easy to see that there is not a great amount of variance between the medians.  This is about what we'd expect, since the NFL is incredibly competitive, and self-normalizing due to constant trading, strategy and balance.  If one team was clearly dominant in median yards per play, we would expect that team to dominate the entire season, which is not the case.  However, there is quite a bit of difference in the outer quartiles and in the number of outliers.  These data support our investigation into whether or not a large variance changes team performance.  
 
-```{r figure1, fig.pos="H", fig.cap="figure1: Box Plot of Yards Per Play, by Team"}
+```{r figure1, echo = FALSE, fig.pos="H"}
 library(ggplot2)
 bygame <- alldata %>%
   group_by_at(vars(posteam, GameID)) %>%
@@ -166,7 +148,7 @@ Put code here.
 
 # References
 ```{r create_r-references}
-r_refs(file = "r-references.bib")
+#r_refs(file = "r-references.bib")
 ```
 
 \setlength{\parindent}{-0.5in}
