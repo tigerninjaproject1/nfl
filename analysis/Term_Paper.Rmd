@@ -102,9 +102,10 @@ ydsGainVTd <- m$aggregate('[
   { "$group": {
       "_id": { "GameID": "$GameID", "PosTeam":"$posteam"},
       "SumTDs": { "$sum": "$Touchdown"},
-      "SumYdsGain": { "$sum": "$Yards.Gained"}
+      "SumYdsGain": { "$sum": "$Yards.Gained"}, 
+      "SDYdsGain": { "$stdDevPop": "$Yards.Gained"}
   }}]')
-ydsGainVTd.tibble <- ydsGainVTd$`_id`
+
 ```
 
 ```{r queries_output, echo=FALSE}
@@ -147,7 +148,9 @@ p2 <- ggplot(ydsGainVTd, aes(SumTDs, SumYdsGain)) + geom_point()
 p2
 ```
 
-
+```{r}
+ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, group = "_id.GameID")) + geom_point()
+```
 
 # Discussion
 We used `r cite_r("r-references.bib")` for all our analyses.
