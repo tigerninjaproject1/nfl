@@ -103,18 +103,19 @@ ydsGainVTd <- m$aggregate('[
       "_id": { "GameID": "$GameID", "PosTeam":"$posteam"},
       "SumTDs": { "$sum": "$Touchdown"},
       "SumYdsGain": { "$sum": "$Yards.Gained"}, 
+      "AvgYdsGain": { "$avg": "Yards.Gained"},
       "SDYdsGain": { "$stdDevPop": "$Yards.Gained"}
   }}]')
 
 ```
 
 ```{r queries_output, echo=FALSE}
-kable(cbind(ydsGainTD[0:10,],
-            avgYdsTds[0:10,],
-            sumTdsPenYds.tibble[0:10,],
-            sumTdsPerQtr.tibble[0:10,],
-            ydsGainVTd.tibble[0:10,])
-      )
+# kable(ydsGainTD[0:10,])
+#             avgYdsTds[0:10,],
+#             sumTdsPenYds.tibble[0:10,],
+#             sumTdsPerQtr.tibble[0:10,],
+#             ydsGainVTd.tibble[0:10,])
+#       )
 # TODO: rename the columns here to make this understandable.
 ```
 
@@ -130,9 +131,9 @@ specs <- data.frame("Bluemix Technical Specifications"= words, "Specifications"=
 kable(specs)
 ```
 
-# Results
+# Analysis
 <!-- # TODO:  Implementation using R scripts: Write some R scripts to analyze data essentially. Make some plots. Does high variance of yards gained mean less touchdowns compared to teams with low variance? Show this with plots. -->
-```{r}
+```{r plot1, echo=FALSE}
 library(ggplot2)
 bygame <- alldata %>%
   group_by_at(vars(posteam, GameID)) %>%
@@ -140,18 +141,29 @@ bygame <- alldata %>%
             avgYdsPerGamePerTeam = mean(Yards$Gained),
             sdYdsPerGamePerTeam = sd(Yards$Gained))
 bp1 <- ggplot(data = bygame, aes(posteam, x = posteam, y = avgYdsPerGamePerTeam))
-bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Offensive Team")
+bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + ggtitle("Median Yards per Play (by Team)")
+# TODO: Need some words describing WTF this is.
 ```
 
-```{r}
-p2 <- ggplot(ydsGainVTd, aes(SumTDs, SumYdsGain)) + geom_point()
-p2
+```{r plot2, echo = FALSE}
+p2 <- ggplot(ydsGainVTd, aes(SumTDs, SumYdsGain)) + geom_point() + xlab("")
+p2 + xlab("Touchdowns") + ylab("Yards") + ggtitle("Touchdowns vs. Yards (Per Game)")
+# TODO: Need some words describing WTF this is.
+
 ```
 
-```{r}
-ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, group = "_id.GameID")) + geom_point()
-ggplot(ydsGainVTd, aes(SumYdsGain, SDYdsGain, group = "_id.GameID")) + geom_point()
+```{r plot3, echo = FALSE}
+ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, group = "_id.GameID")) + 
+  geom_point() + xlab("Touchdowns") + ylab("StDev in Yards (Per Game)") + ggtitle("Touchdowns vs. Variance in Yards Per Game")
+# TODO: Need some words describing WTF this is.
+
 ```
+```{r plot4, echo = FALSE}
+ggplot(ydsGainVTd, aes(SumYdsGain, SDYdsGain, group = "_id.GameID")) + 
+  geom_point() + xlab("Yards") + ylab("StDev(Yards)") + ggtitle("Yards vs. StDev(Yards) per Game")
+```
+
+
 
 # Discussion
 We used `r cite_r("r-references.bib")` for all our analyses.
