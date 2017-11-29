@@ -16,14 +16,6 @@ affiliation:
   - id            : "1"
     institution   : "Southern Methodist University"
 
-# abstract: |  
-
-
-
-  
-# keywords          : "keywords"
-# wordcount         : "X"
-
 bibliography      : ["r-references.bib", "ext-references.bib"]
 
 figsintext        : yes
@@ -43,7 +35,6 @@ library("mongolite")
 library("dplyr") 
 library("knitr")
 library("tibble")
-library("kableExtra")
 jostein_uri <- "mongodb://admin:KFTZXKMBGIWKMWJK@sl-us-south-1-portal.12.dblayer.com:28046,sl-us-south-1-portal.17.dblayer.com:28046/admin?3t.connection.name=JosteinDB&3t.connectTimeout=10000&3t.uriVersion=2&3t.certificatePreference=RootCACert:accept_any&3t.databases=admin,compose&3t.useClientCertPassword=false&readPreference=primary&ssl=true&3t.socketTimeout=0&3t.sharded=true&3t.connectionMode=multi"
 m <- mongo(collection = "NFL", db = "test",  verbose = TRUE, url=jostein_uri, options = ssl_options(weak_cert_validation = T))
 m$count('{}')
@@ -114,16 +105,6 @@ ydsGainVTd <- m$aggregate('[
 
 ```
 
-```{r queries_output, echo=FALSE}
-# kable(ydsGainTD[0:10,])
-#             avgYdsTds[0:10,],
-#             sumTdsPenYds.tibble[0:10,],
-#             sumTdsPerQtr.tibble[0:10,],
-#             ydsGainVTd.tibble[0:10,])
-#       )
-# TODO: rename the columns here to make this understandable.
-```
-
 # The Tools
 For this analysis, we use MongoDB for data mining and basic statistics, and R for data visualization and Markdown.  We originally had planned on using MySQL on bluemix, but abandoned it in favor of Mongo after some serious issues whist loading the data.  
 
@@ -135,15 +116,14 @@ We used Mongodb hosted on IBM Bluemix and Rstudio with Rmarkdown for the analysi
 words <- c("Bluemix Storage", "Data Size", "Database Server", "Database Version", "Database Location", "Cloud Hosting Service", "Processors", "Memory")
 numbers <- c("1GB", "14.3MB", "Compose for MongoDB-jj", "3.2.11", "US South", "IBM Bluemix", "1 x 2.0 GHz Cores", "1GB RAM")
 specs <- data.frame( words, numbers)
-# kable(specs, col.names = c("Bluemix Technical Specifications", "Specifications"))
-apa_table(specs)
+kable(specs, col.names = c("Bluemix Technical Specifications", "Specifications"))
 ```
 
 # Analysis
-<!-- # TODO:  Implementation using R scripts: Write some R scripts to analyze data essentially. Make some plots. Does high variance of yards gained mean less touchdowns compared to teams with low variance? Show this with plots. -->
-When the spread of per-team yards-per-play is viewed in a quartile plot, it is easy to see that there is not a great amount of variance between the medians.  This is about what we'd expect, since the NFL is incredibly competitive, and self-normalizing due to constant trading, strategy and balance.  If one team was clearly dominant in median yards per play, we would expect that team to dominate the entire season, which is not the case.  However, there is quite a bit of difference in the outer quartiles and in the number of outliers.  These data support our investigation into whether or not a large variance changes team performance.
 
-```{r fig.width=6, echo=FALSE}
+When the spread of per-team yards-per-play is viewed in a quartile plot, it is easy to see that there is not a great amount of variance between the medians.  This is about what we'd expect, since the NFL is incredibly competitive, and self-normalizing due to constant trading, strategy and balance.  If one team was clearly dominant in median yards per play, we would expect that team to dominate the entire season, which is not the case.  However, there is quite a bit of difference in the outer quartiles and in the number of outliers.  These data support our investigation into whether or not a large variance changes team performance.  
+
+```{r figure1, fig.pos="H", fig.cap="figure1: Box Plot of Yards Per Play, by Team"}
 library(ggplot2)
 bygame <- alldata %>%
   group_by_at(vars(posteam, GameID)) %>%
@@ -152,40 +132,37 @@ bygame <- alldata %>%
             sdYdsPerGamePerTeam = sd(Yards$Gained))
 bp1 <- ggplot(data = bygame, aes(posteam, x = posteam, y = avgYdsPerGamePerTeam))
 bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + ggtitle("Median Yards per Play (by Team)")
-
-```
-  
-  
+```  
 To start, we decided to plot number of touchdowns against yards gained (per game).  We expect to see a linear trend upwards that illustrates the basic football concept of more yards = more points.  As you can see, there appears to be an upward trend -- that is, as yards increase, so does the number of touchdowns.  
 
-```{r plot2, echo = FALSE}
+```{r figure2, echo = FALSE, fig.pos="H"}
 p2 <- ggplot(ydsGainVTd, aes(SumTDs, SumYdsGain)) + geom_point() + xlab("")
 p2 + xlab("Touchdowns") + ylab("Yards") + ggtitle("Touchdowns vs. Yards (Per Game)")
 # TODO: Need some words describing WTF this is.
 
 ```  
 
-Next, we wanted to see if the 
-```{r plot3, echo = FALSE}
+Text describing figure 3  
+
+```{r figure3, echo = FALSE, fig.pos="H"}
 ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, group = "_id.GameID")) + 
   geom_point() + xlab("Touchdowns") + ylab("StDev in Yards (Per Game)") + ggtitle("Touchdowns vs. Variance in Yards Per Game")
-# TODO: Need some words describing WTF this is.
-
 ```
-```{r plot4, echo = FALSE}
+
+Then we finally settled on figure 4 to illustrate the relationship between Yards and Standard deviation.  Note that ti's not uniform linear growth, and that impacts the ability to discern whether or not the touchdowns / sd plot is a reliable measure of the underlying relationship.
+
+```{r figure4, echo = FALSE, fig.pos="H"}
 ggplot(ydsGainVTd, aes(SumYdsGain, SDYdsGain, group = "_id.GameID")) + 
   geom_point() + xlab("Yards") + ylab("StDev(Yards)") + ggtitle("Yards vs. StDev(Yards) per Game")
 ```
-
-# Discussion
-
+Text summing up all the things.
 
 # Conclusion
 
+This is where we wrap up all the things and make our conclusion.
+
 # Appendices
-
-
-\newpage
+Put code here.
 
 # References
 ```{r create_r-references}
