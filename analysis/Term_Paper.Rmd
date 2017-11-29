@@ -177,9 +177,8 @@ bygame <- alldata %>%
             sdYdsPerGamePerTeam = sd(Yards$Gained))
 bp1 <- ggplot(data = bygame, aes(posteam, x = posteam, y = avgYdsPerGamePerTeam))
 bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Offensive Team")
-
-
 ```
+
 
 
 # Discussion
