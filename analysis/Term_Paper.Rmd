@@ -1,6 +1,6 @@
 ---
 title             : "NFL 2015: A Statistical Analysis"
-author            : "Dave, Jostein, Bryan and Robert"
+author            : "Dave Dyer, Jostein Barry-Straume, Bryan Cikatz and Robert Flamenbaum"
 date              : "November 28, 2017"
 output: 
   pdf_document: 
@@ -113,8 +113,14 @@ bygame <- alldata %>%
   summarize(TDgameSum = sum(Touchdown),
             avgYdsPerGamePerTeam = mean(Yards$Gained),
             sdYdsPerGamePerTeam = sd(Yards$Gained))
+bygame <- bygame[bygame$avgYdsPerGamePerTeam!=0,]
 bp1 <- ggplot(data = bygame, aes(posteam, x = posteam, y = avgYdsPerGamePerTeam))
-bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + ggtitle("Median Yards per Play (by Team)") + geom_hline(yintercept = median(bygame$avgYdsPerGamePerTeam), color = "blue") # Added horizontal line for the median of avgYdsPerGamePerTeam
+bp1 + geom_boxplot() +
+  ylab("Yards Per Play") + 
+  xlab("Team") + 
+  ggtitle("Median Yards per Play (by Team)") + 
+  geom_hline(yintercept = median(bygame$avgYdsPerGamePerTeam), color = "blue") +  # Added horizontal line for the median of avgYdsPerGamePerTeam
+  scale_y_continuous(limits = c(0, 10))
 ```  
 
 This is about what we'd expect, since the NFL is incredibly competitive, and self-normalizing due to constant trading, strategy, talent balance, and strategic positional matchups that, on balance, make the league pretty competitive.  
