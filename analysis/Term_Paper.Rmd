@@ -114,7 +114,7 @@ bygame <- alldata %>%
             avgYdsPerGamePerTeam = mean(Yards$Gained),
             sdYdsPerGamePerTeam = sd(Yards$Gained))
 bp1 <- ggplot(data = bygame, aes(posteam, x = posteam, y = avgYdsPerGamePerTeam))
-bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + ggtitle("Median Yards per Play (by Team)")
+bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + ggtitle("Median Yards per Play (by Team)") + geom_hline(yintercept = median(bygame$avgYdsPerGamePerTeam)) # Added horizontal line for the median of avgYdsPerGamePerTeam
 ```  
 
 This is about what we'd expect, since the NFL is incredibly competitive, and self-normalizing due to constant trading, strategy, talent balance, and strategic positional matchups that, on balance, make the league pretty competitive.  
@@ -125,8 +125,10 @@ If one team were overl dominant in median yards per play, we would expect that t
 To start, we decided to plot number of touchdowns against yards gained (per game).  We expect to see a linear trend upwards that illustrates the basic football concept of more yards = more points.  As you can see, there appears to be an upward trend -- that is, as yards increase, so does the number of touchdowns.  
 
 ```{r figure2, echo = FALSE, fig.pos="H"}
+# Calculate intercept and slope for AB Line
+coefs <- coef(lm(SumYdsGain ~ SumTDs, data = ydsGainVTd))
 p2 <- ggplot(ydsGainVTd, aes(SumTDs, SumYdsGain)) + geom_point() + xlab("")
-p2 + xlab("Touchdowns") + ylab("Yards") + ggtitle("Touchdowns vs. Yards (Per Game)")
+p2 + xlab("Touchdowns") + ylab("Yards") + ggtitle("Touchdowns vs. Yards (Per Game)") + geom_abline(intercept = coefs[1], slope = coefs[2])
 # TODO: Need some words describing WTF this is.
 
 ```  
@@ -138,16 +140,20 @@ The below plot shows that it is relatively static, with perhaps a slight rise as
 
 
 ```{r figure3, echo = FALSE, fig.pos="H"}
+# Calculate intercept and slope for AB Line
+coefs <- coef(lm(SDYdsGain ~ SumTDs, data = ydsGainVTd))
 ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, group = "_id.GameID")) + 
-  geom_point() + xlab("Touchdowns") + ylab("StDev in Yards (Per Game)") + ggtitle("Touchdowns vs. Variance in Yards Per Game")
+  geom_point() + xlab("Touchdowns") + ylab("StDev in Yards (Per Game)") + ggtitle("Touchdowns vs. Variance in Yards Per Game") + geom_abline(intercept = coefs[1], slope = coefs[2])
 ```
 
 However, the data are not normalized, and in order to understand the impact a normalization routine would have on the data, we can examine the relationship between the standard deviation of yards per play and the total yards per game.  We expect that, as yards per game goes up, so does total yards, but that is not what's interesting about this plot.  Note that it's not uniform linear growth as the standard deviation and the yards per game increase.  The spread increases as yards and standard deviation increase, indicating that you get more yards with more variance, but you also run the risk of not getting as many yards (presumably because you're taking more chances, and you get higher rewards for higher risk... sometimes.)  
 
 
 ```{r figure4, echo = FALSE, fig.pos="H"}
+# Calculate intercept and slope for AB Line
+coefs <- coef(lm(SumYdsGain ~ SDYdsGain, data = ydsGainVTd))
 ggplot(ydsGainVTd, aes(SDYdsGain, SumYdsGain, group = "_id.GameID")) + 
-  geom_point() + ylab("Yards") + xlab("StDev(Yards)") + ggtitle("Yards vs. StDev(Yards) per Game")
+  geom_point() + ylab("Yards") + xlab("StDev(Yards)") + ggtitle("Yards vs. StDev(Yards) per Game") + geom_abline(intercept = coefs[1], slope = coefs[2])
 ```
  
 Insert normalization thing here, then talk about it.
