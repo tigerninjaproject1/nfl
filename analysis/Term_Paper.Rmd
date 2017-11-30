@@ -182,12 +182,20 @@ ggplot(ydsGainVTd, aes(SDYdsGain, SumYdsGain, group = "_id.GameID")) +
 
 # Conclusion
 
-The positive slope of the fit line in the StDev vs. Yards per Game plot is indicative that the surprising result in figure 3 -- that is, that higher standard deviation equals more touchdowns -- could be explained by this strong increasing trend.  In order to find out for sure, we need a way to remove the impact of Yards / Game on Touchdowns / Game.  Unfortunately, such an exercise is outside of the scope of this class.
+The positive slope of the fit line in the StDev vs. Yards per Game plot is indicative that the surprising result in figure 3 -- that is, that *higher*, not lower, standard deviation equals more touchdowns -- could be explained by this strong increasing trend.  In order to find out for sure, though, we would need a way to remove the impact of Yards / Game on Touchdowns / Game.  Unfortunately, such an exercise is outside of the scope of this class.
+
+Analyzing the relationship between standard deviation of yardage per play and touchdowns scored in the 2015 NFL season yielded some interesting results. While it seems that higher standard deviation tends to result in more yardage gained, the relationship is not so clear as it relates to touchdowns scored. Exactly What these results might mean to an offensive football strategist is debatable, however it is likely that one would conclude based on the analysis, that a mixed approach would lead to more yardage and more points. The high level strategy is to carefully balance big plays with an overall conservative offense. When commencing this project, the assumed result was that lower standard deviation would result in higher touchdowns, but this relationship is currently inconclusive and warrents more analysis.
+
+### Lessons Learned
+
+At the onset of this project, our group anticipated using MySQL to generate queries that would be visualized in R Studio. This strategy reflected the SQL and R talents of the group members. While it was unfortunate that Bluemix MySQL could not correctly load the NFL data, this setback fortuitously turned into a fantastic learning experience with MongoDB and R. MongoDB was able to load the NFL data set without incident and after a somewhat short learning curve, proved itself to be a rather effective query environment. Another benefit of using MongoDB was that it easily integrated with R by means of the Mongolite package. The combination of MongoDB and R proved very flexible with our large, highly dimensional data set. Using MongoDB with R should prove to be a powerful tool in future projects.
 
 # Appendices
 Below are the R code chunks used for this markdown.  
 
-```{r code, eval=FALSE, echo=TRUE, message=FALSE}
+\onecolumn
+
+```{r code, eval = FALSE, message = FALSE}
 # Returns all plays that scored a touchdown with positive yard gains,
 # grouping by team and count the plays per team, sorted in alphabetical order
 ydsGainTD <- m$aggregate('[
@@ -240,52 +248,22 @@ ydsGainVTd <- m$aggregate('[
 ydsGainVTd <- ydsGainVTd[ydsGainVTd$SumTDs!=0,]
 
 library(ggplot2)
-bygame <- alldata %>%
-  group_by_at(vars(posteam, GameID)) %>%
-  summarize(TDgameSum = sum(Touchdown),
-            avgYdsPerGamePerTeam = mean(Yards$Gained),
-            sdYdsPerGamePerTeam = sd(Yards$Gained))
-bp1 <- ggplot(data = bygame, 
-              aes(posteam, 
-                  x = posteam,
-                  y = avgYdsPerGamePerTeam))
-bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + 
-ggtitle("Median Yards per Play (by Team)") + 
-geom_hline(yintercept = median(bygame$avgYdsPerGamePerTeam), color = "blue") 
-# Added horizontal line for the median of avgYdsPerGamePerTeam
+bygame <- alldata %>% group_by_at(vars(posteam, GameID)) %>% summarize(TDgameSum = sum(Touchdown),avgYdsPerGamePerTeam = mean(Yards$Gained),sdYdsPerGamePerTeam = sd(Yards$Gained))
+bp1 <- ggplot(data = bygame, aes(posteam, x = posteam,y = avgYdsPerGamePerTeam))
+bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + ggtitle("Median Yards per Play (by Team)") + geom_hline(yintercept = median(bygame$avgYdsPerGamePerTeam), color = "blue") # Added horizontal line for the median of avgYdsPerGamePerTeam
 
 # Calculate intercept and slope for AB Line
 coefs2 <- coef(lm(SumYdsGain ~ SumTDs, data = ydsGainVTd))
 p2 <- ggplot(ydsGainVTd, aes(SumTDs, SumYdsGain)) 
-p2 + geom_jitter() + 
-  xlab("Touchdowns") + 
-  ylab("Yards") + 
-  ggtitle("Touchdowns vs. Yards (Per Game)") +
-  geom_abline(intercept = coefs2[1], slope = coefs2[2], color = "blue") + 
-  scale_x_continuous(limits=c(0,9)) + 
-  scale_y_continuous(limits=c(0, 800))
+p2 + geom_jitter() + xlab("Touchdowns") + ylab("Yards") + ggtitle("Touchdowns vs. Yards (Per Game)") + geom_abline(intercept = coefs2[1], slope = coefs2[2], color = "blue") + scale_x_continuous(limits=c(0,9)) + scale_y_continuous(limits=c(0, 800))
 
 # Calculate intercept and slope for AB Line
 coefs3 <- coef(lm(SDYdsGain ~ SumTDs, data = ydsGainVTd))
-ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, group = "_id.GameID")) + 
-  geom_jitter() + 
-  xlab("Touchdowns") + 
-  ylab("StDev in Yards (Per Game)") + 
-  ggtitle("Touchdowns vs. Variance in Yards Per Game") + 
-  geom_abline(intercept = coefs3[1], slope = coefs3[2], color = "blue") + 
-  scale_x_continuous(limits=c(0,9)) + 
-  scale_y_continuous(limits=c(0, 17))
+ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, group = "_id.GameID")) + geom_jitter() + xlab("Touchdowns") + ylab("StDev in Yards (Per Game)") + ggtitle("Touchdowns vs. Variance in Yards Per Game") + geom_abline(intercept = coefs3[1], slope = coefs3[2], color = "blue") + scale_x_continuous(limits=c(0,9)) + scale_y_continuous(limits=c(0, 17))
 
 # Calculate intercept and slope for AB Line
 coefs4 <- coef(lm(SumYdsGain ~ SDYdsGain, data = ydsGainVTd))
-ggplot(ydsGainVTd, aes(SDYdsGain, SumYdsGain, group = "_id.GameID")) + 
-  geom_jitter() + 
-  ylab("Yards") + 
-  xlab("StDev(Yards)") + 
-  ggtitle("Yards vs. StDev(Yards) per Game") + 
-  geom_abline(intercept = coefs4[1], slope = coefs4[2], color="blue") + 
-  scale_x_continuous(limits=c(0,17)) + 
-  scale_y_continuous(limits=c(0, 800))
+ggplot(ydsGainVTd, aes(SDYdsGain, SumYdsGain, group = "_id.GameID")) + geom_jitter() + ylab("Yards") + xlab("StDev(Yards)") + ggtitle("Yards vs. StDev(Yards) per Game") + geom_abline(intercept = coefs4[1], slope = coefs4[2], color="blue") + scale_x_continuous(limits=c(0,17)) + scale_y_continuous(limits=c(0, 800))
 ```
 
 # References
