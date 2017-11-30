@@ -10,6 +10,7 @@ output:
       ]
 ---
 
+\pagenumbering{gobble}
 
 ```{r load_packages, include = FALSE}
 #library("papaja")
@@ -195,88 +196,118 @@ At the onset of this project, our group anticipated using MySQL to generate quer
 Below are the R code chunks used for this markdown.  
 
 ```{r code, eval = FALSE, message = FALSE}
-# Returns all plays that scored a touchdown with positive yard gains,
-# grouping by team and count the plays per team, sorted in alphabetical order
+# Returns all plays that scored a touchdown
+# with positive yard gains, grouping by
+# team and count the plays per team,
+# sorted in alphabetical order
 ydsGainTD <- m$aggregate('[
-		{ "$match": { "Yards.Gained": { "$gt": 0 }, "Touchdown": { "$gt": 0 } } },
-    { "$group": { "_id": "$posteam" , "count": { "$sum": 1 } } },
-    { "$sort": { "_id": 1} }
-  ]')
+{"$match": {"Yards.Gained": {"$gt": 0},
+            "Touchdown": {"$gt": 0}}},
+{"$group": {"_id": "$posteam",
+            "count": {"$sum": 1}}},
+{"$sort": {"_id": 1}}]')
 ydsGainTD.tibble <- ydsGainTD
 
-# Returns average yards gained and average number of touchdowns per team
+# Returns average yards gained and average
+# number of touchdowns per team
 avgYdsTds <- m$aggregate('[
-  { "$group": {
-      "_id": "$posteam",
-      "ydsGainAvg": { "$avg": "$Yards.Gained" },
-      "ydsGainSd": { "$stdDevPop": "$Yards.Gained"},
-      "ydsGainSdSample": { "$stdDevSamp": "$Yards.Gained"},
-      "tdsAvg": { "$avg": "$Touchdown" },
-      "tdsSum": { "$sum": "$Touchdown" }
-      }
-  }]')
+{"$group": {
+"_id": "$posteam",
+"ydsGainAvg": {"$avg": "$Yards.Gained"},
+"ydsGainSd":
+  {"$stdDevPop": "$Yards.Gained"},
+"ydsGainSdSample":
+  {"$stdDevSamp": "$Yards.Gained"},
+"tdsAvg": { "$avg": "$Touchdown"},
+"tdsSum": { "$sum": "$Touchdown"}}}]')
 avgYdsTds.tibble <- avgYdsTds$`_id`
 
-# Returns sum of touchdowns and sum of penalty yards per team
+# Returns sum of touchdowns and
+# sum of penalty yards per team
 sumTdsPenYds <- m$aggregate('[
-  { "$group": { 
-      "_id": { "posteam": "$posteam"},
-      "Touchdown": { "$sum": "$Touchdown" },
-      "Penalty_Yards": { "$sum": "$Penalty.Yards" }
-    }
-  }]')
+{ "$group": {
+"_id": { "posteam": "$posteam"},
+"Touchdown": { "$sum": "$Touchdown" },
+"Penalty_Yards": {"$sum": "$Penalty.Yards"}
+}}]')
 sumTdsPenYds.tibble <- sumTdsPenYds$`_id`
 
-# Returns sum of touchdowns by quarter per team
+# Returns sum of touchdowns
+# by quarter per team
 sumTdsPerQtr <- m$aggregate('[
-  { "$group": { 
-    "_id": {"Team": "$posteam", "Quarter": "$qtr"},
-    "Touchdown": { "$sum": "$Touchdown" }
-    }
-  }]')
+{"$group": { 
+"_id": {"Team": "$posteam",
+        "Quarter": "$qtr"},
+"Touchdown": {"$sum": "$Touchdown"}
+}}]')
 sumTdsPerQtr.tibble <- sumTdsPerQtr$`_id`
 
 ydsGainVTd <- m$aggregate('[
-  { "$group": {
-      "_id": { "GameID": "$GameID", "PosTeam":"$posteam"},
-      "SumTDs": { "$sum": "$Touchdown"},
-      "SumYdsGain": { "$sum": "$Yards.Gained"}, 
-      "AvgYdsGain": { "$avg": "Yards.Gained"},
-      "SDYdsGain": { "$stdDevPop": "$Yards.Gained"}
-  }}]')
-ydsGainVTd <- ydsGainVTd[ydsGainVTd$SumTDs!=0,]
+{"$group": {
+"_id": {"GameID": "$GameID",
+        "PosTeam":"$posteam"},
+"SumTDs": {"$sum": "$Touchdown"},
+"SumYdsGain": {"$sum": "$Yards.Gained"}, 
+"AvgYdsGain": {"$avg": "Yards.Gained"},
+"SDYdsGain": {"$stdDevPop":
+              "$Yards.Gained"}}}]')
+ydsGainVTd <- ydsGainVTd[
+              ydsGainVTd$SumTDs!=0,]
 
 library(ggplot2)
-bygame <- alldata %>% group_by_at(vars(posteam, GameID)) %>% 
-  summarize(TDgameSum = sum(Touchdown),avgYdsPerGamePerTeam = mean(Yards$Gained),
-            sdYdsPerGamePerTeam = sd(Yards$Gained))
-bp1 <- ggplot(data = bygame, aes(posteam, x = posteam,y = avgYdsPerGamePerTeam))
-bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + 
-  ggtitle("Median Yards per Play (by Team)") + 
-  geom_hline(yintercept = median(bygame$avgYdsPerGamePerTeam), color = "blue") 
-# Added horizontal line for the median of avgYdsPerGamePerTeam
+bygame <- alldata %>%
+group_by_at(vars(posteam, GameID)) %>%
+summarize(TDgameSum = sum(Touchdown),
+avgYdsPerGamePerTeam = mean(Yards$Gained),
+sdYdsPerGamePerTeam = sd(Yards$Gained))
+bp1 <- ggplot(data = bygame, aes(posteam,
+  x = posteam,y = avgYdsPerGamePerTeam))
+bp1 + geom_boxplot() 
++ ylab("Yards Per Play") + xlab("Team") +
+ggtitle("Median Yards per Play (by Team)")
++ geom_hline(yintercept = 
+median(bygame$avgYdsPerGamePerTeam),
+color = "blue")
+# Added horizontal line for the
+# median of avgYdsPerGamePerTeam
 
 # Calculate intercept and slope for AB Line
-coefs2 <- coef(lm(SumYdsGain ~ SumTDs, data = ydsGainVTd))
-p2 <- ggplot(ydsGainVTd, aes(SumTDs, SumYdsGain)) 
-p2 + geom_jitter() + xlab("Touchdowns") + ylab("Yards") + 
-  ggtitle("Touchdowns vs. Yards (Per Game)") + 
-  geom_abline(intercept = coefs2[1], slope = coefs2[2], color = "blue") + 
-  scale_x_continuous(limits=c(0,9)) + scale_y_continuous(limits=c(0, 800))
+coefs2 <- coef(lm(SumYdsGain ~ SumTDs,
+                  data = ydsGainVTd))
+p2 <- ggplot(ydsGainVTd, 
+             aes(SumTDs, SumYdsGain)) 
+p2 + geom_jitter()
++ xlab("Touchdowns") + ylab("Yards") + 
+ggtitle("Touchdowns vs. Yards (Per Game)")
++ geom_abline(intercept = coefs2[1],
+slope = coefs2[2], color = "blue") + 
+scale_x_continuous(limits=c(0,9)) +
+scale_y_continuous(limits=c(0, 800))
 
 # Calculate intercept and slope for AB Line
-coefs3 <- coef(lm(SDYdsGain ~ SumTDs, data = ydsGainVTd))
-ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, group = "_id.GameID")) + geom_jitter() + 
-  xlab("Touchdowns") + ylab("StDev in Yards (Per Game)") + 
-  ggtitle("Touchdowns vs. Variance in Yards Per Game") + 
-  geom_abline(intercept = coefs3[1], slope = coefs3[2], color = "blue") + 
-  scale_x_continuous(limits=c(0,9)) + scale_y_continuous(limits=c(0, 17))
+coefs3 <- coef(lm(SDYdsGain ~ SumTDs,
+                  data = ydsGainVTd))
+ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, 
+group = "_id.GameID")) + geom_jitter() + 
+xlab("Touchdowns") + 
+ylab("StDev in Yards (Per Game)") + 
+ggtitle("Touchdowns vs. 
+        Variance in Yards Per Game") + 
+geom_abline(intercept = coefs3[1], 
+slope = coefs3[2], color = "blue") + 
+scale_x_continuous(limits=c(0,9)) + 
+scale_y_continuous(limits=c(0, 17))
 
 # Calculate intercept and slope for AB Line
-coefs4 <- coef(lm(SumYdsGain ~ SDYdsGain, data = ydsGainVTd))
-ggplot(ydsGainVTd, aes(SDYdsGain, SumYdsGain, group = "_id.GameID")) + geom_jitter() + 
-  ylab("Yards") + xlab("StDev(Yards)") + ggtitle("Yards vs. StDev(Yards) per Game") + 
-  geom_abline(intercept = coefs4[1], slope = coefs4[2], color="blue") + 
+coefs4 <- coef(lm(SumYdsGain ~ SDYdsGain, 
+                  data = ydsGainVTd))
+ggplot(ydsGainVTd, aes(SDYdsGain, 
+SumYdsGain, group = "_id.GameID")) + 
+geom_jitter() + ylab("Yards") + 
+xlab("StDev(Yards)") + 
+ggtitle("Yards vs. StDev(Yards) per Game") 
++ geom_abline(intercept = coefs4[1], 
+slope = coefs4[2], color="blue") + 
   scale_x_continuous(limits=c(0,17)) + 
   scale_y_continuous(limits=c(0, 800))
 ```
