@@ -84,7 +84,7 @@ ydsGainVTd <- m$aggregate('[
       "AvgYdsGain": { "$avg": "Yards.Gained"},
       "SDYdsGain": { "$stdDevPop": "$Yards.Gained"}
   }}]')
-
+ydsGainVTd <- ydsGainVTd[ydsGainVTd$SumTDs!=0,]
 ```
 
 # The Tools
@@ -114,7 +114,7 @@ bygame <- alldata %>%
             avgYdsPerGamePerTeam = mean(Yards$Gained),
             sdYdsPerGamePerTeam = sd(Yards$Gained))
 bp1 <- ggplot(data = bygame, aes(posteam, x = posteam, y = avgYdsPerGamePerTeam))
-bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + ggtitle("Median Yards per Play (by Team)") + geom_hline(yintercept = median(bygame$avgYdsPerGamePerTeam)) # Added horizontal line for the median of avgYdsPerGamePerTeam
+bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + ggtitle("Median Yards per Play (by Team)") + geom_hline(yintercept = median(bygame$avgYdsPerGamePerTeam), color = "blue") # Added horizontal line for the median of avgYdsPerGamePerTeam
 ```  
 
 This is about what we'd expect, since the NFL is incredibly competitive, and self-normalizing due to constant trading, strategy, talent balance, and strategic positional matchups that, on balance, make the league pretty competitive.  
@@ -126,11 +126,15 @@ To start, we decided to plot number of touchdowns against yards gained (per game
 
 ```{r figure2, echo = FALSE, fig.pos="H"}
 # Calculate intercept and slope for AB Line
-coefs <- coef(lm(SumYdsGain ~ SumTDs, data = ydsGainVTd))
-p2 <- ggplot(ydsGainVTd, aes(SumTDs, SumYdsGain)) + geom_point() + xlab("")
-p2 + xlab("Touchdowns") + ylab("Yards") + ggtitle("Touchdowns vs. Yards (Per Game)") + geom_abline(intercept = coefs[1], slope = coefs[2])
-# TODO: Need some words describing WTF this is.
-
+coefs2 <- coef(lm(SumYdsGain ~ SumTDs, data = ydsGainVTd))
+p2 <- ggplot(ydsGainVTd, aes(SumTDs, SumYdsGain)) 
+p2 + geom_jitter() + 
+  xlab("Touchdowns") + 
+  ylab("Yards") + 
+  ggtitle("Touchdowns vs. Yards (Per Game)") +
+  geom_abline(intercept = coefs2[1], slope = coefs2[2], color = "blue") + 
+  scale_x_continuous(limits=c(0,9)) + 
+  scale_y_continuous(limits=c(0, 800))
 ```  
 
 However, the theory of this paper is that, if yards per play is normalized, the lower variance teams will get more touchdowns per game.  So it is important to know how the non-normalized standard deviation of yards per play relates to touchdowns per game on average.
@@ -141,9 +145,15 @@ The below plot shows that it is relatively static, with perhaps a slight rise as
 
 ```{r figure3, echo = FALSE, fig.pos="H"}
 # Calculate intercept and slope for AB Line
-coefs <- coef(lm(SDYdsGain ~ SumTDs, data = ydsGainVTd))
+coefs3 <- coef(lm(SDYdsGain ~ SumTDs, data = ydsGainVTd))
 ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, group = "_id.GameID")) + 
-  geom_point() + xlab("Touchdowns") + ylab("StDev in Yards (Per Game)") + ggtitle("Touchdowns vs. Variance in Yards Per Game") + geom_abline(intercept = coefs[1], slope = coefs[2])
+  geom_jitter() + 
+  xlab("Touchdowns") + 
+  ylab("StDev in Yards (Per Game)") + 
+  ggtitle("Touchdowns vs. Variance in Yards Per Game") + 
+  geom_abline(intercept = coefs3[1], slope = coefs3[2], color = "blue") + 
+  scale_x_continuous(limits=c(0,9)) + 
+  scale_y_continuous(limits=c(0, 17))
 ```
 
 However, the data are not normalized, and in order to understand the impact a normalization routine would have on the data, we can examine the relationship between the standard deviation of yards per play and the total yards per game.  We expect that, as yards per game goes up, so does total yards, but that is not what's interesting about this plot.  Note that it's not uniform linear growth as the standard deviation and the yards per game increase.  The spread increases as yards and standard deviation increase, indicating that you get more yards with more variance, but you also run the risk of not getting as many yards (presumably because you're taking more chances, and you get higher rewards for higher risk... sometimes.)  
@@ -151,19 +161,126 @@ However, the data are not normalized, and in order to understand the impact a no
 
 ```{r figure4, echo = FALSE, fig.pos="H"}
 # Calculate intercept and slope for AB Line
-coefs <- coef(lm(SumYdsGain ~ SDYdsGain, data = ydsGainVTd))
+coefs4 <- coef(lm(SumYdsGain ~ SDYdsGain, data = ydsGainVTd))
 ggplot(ydsGainVTd, aes(SDYdsGain, SumYdsGain, group = "_id.GameID")) + 
-  geom_point() + ylab("Yards") + xlab("StDev(Yards)") + ggtitle("Yards vs. StDev(Yards) per Game") + geom_abline(intercept = coefs[1], slope = coefs[2])
+  geom_jitter() + 
+  ylab("Yards") + 
+  xlab("StDev(Yards)") + 
+  ggtitle("Yards vs. StDev(Yards) per Game") + 
+  geom_abline(intercept = coefs4[1], slope = coefs4[2], color="blue") + 
+  scale_x_continuous(limits=c(0,17)) + 
+  scale_y_continuous(limits=c(0, 800))
 ```
  
-Insert normalization thing here, then talk about it.
+
 
 # Conclusion
 
-This is where we wrap up all the things and make our conclusion.
+The positive slope of the fit line in the StDev vs. Yards per Game plot is indicative that the surprising result in figure 3 -- that is, that higher standard deviation equals more touchdowns -- could be explained by this strong increasing trend.  In order to find out for sure, we need a way to remove the impact of Yards / Game on Touchdowns / Game.  Unfortunately, such an exercise is outside of the scope of this class.
 
 # Appendices
-Put code here.
+Below are the R code chunks used for this markdown.  
+
+```{r code, eval=FALSE, echo=TRUE, message=FALSE}
+# Returns all plays that scored a touchdown with positive yard gains,
+# grouping by team and count the plays per team, sorted in alphabetical order
+ydsGainTD <- m$aggregate('[
+		{ "$match": { "Yards.Gained": { "$gt": 0 }, "Touchdown": { "$gt": 0 } } },
+    { "$group": { "_id": "$posteam" , "count": { "$sum": 1 } } },
+    { "$sort": { "_id": 1} }
+  ]')
+ydsGainTD.tibble <- ydsGainTD
+
+# Returns average yards gained and average number of touchdowns per team
+avgYdsTds <- m$aggregate('[
+  { "$group": {
+      "_id": "$posteam",
+      "ydsGainAvg": { "$avg": "$Yards.Gained" },
+      "ydsGainSd": { "$stdDevPop": "$Yards.Gained"},
+      "ydsGainSdSample": { "$stdDevSamp": "$Yards.Gained"},
+      "tdsAvg": { "$avg": "$Touchdown" },
+      "tdsSum": { "$sum": "$Touchdown" }
+      }
+  }]')
+avgYdsTds.tibble <- avgYdsTds$`_id`
+
+# Returns sum of touchdowns and sum of penalty yards per team
+sumTdsPenYds <- m$aggregate('[
+  { "$group": { 
+      "_id": { "posteam": "$posteam"},
+      "Touchdown": { "$sum": "$Touchdown" },
+      "Penalty_Yards": { "$sum": "$Penalty.Yards" }
+    }
+  }]')
+sumTdsPenYds.tibble <- sumTdsPenYds$`_id`
+
+# Returns sum of touchdowns by quarter per team
+sumTdsPerQtr <- m$aggregate('[
+  { "$group": { 
+    "_id": {"Team": "$posteam", "Quarter": "$qtr"},
+    "Touchdown": { "$sum": "$Touchdown" }
+    }
+  }]')
+sumTdsPerQtr.tibble <- sumTdsPerQtr$`_id`
+
+ydsGainVTd <- m$aggregate('[
+  { "$group": {
+      "_id": { "GameID": "$GameID", "PosTeam":"$posteam"},
+      "SumTDs": { "$sum": "$Touchdown"},
+      "SumYdsGain": { "$sum": "$Yards.Gained"}, 
+      "AvgYdsGain": { "$avg": "Yards.Gained"},
+      "SDYdsGain": { "$stdDevPop": "$Yards.Gained"}
+  }}]')
+ydsGainVTd <- ydsGainVTd[ydsGainVTd$SumTDs!=0,]
+
+library(ggplot2)
+bygame <- alldata %>%
+  group_by_at(vars(posteam, GameID)) %>%
+  summarize(TDgameSum = sum(Touchdown),
+            avgYdsPerGamePerTeam = mean(Yards$Gained),
+            sdYdsPerGamePerTeam = sd(Yards$Gained))
+bp1 <- ggplot(data = bygame, 
+              aes(posteam, 
+                  x = posteam,
+                  y = avgYdsPerGamePerTeam))
+bp1 + geom_boxplot() + ylab("Yards Per Play") + xlab("Team") + 
+ggtitle("Median Yards per Play (by Team)") + 
+geom_hline(yintercept = median(bygame$avgYdsPerGamePerTeam), color = "blue") 
+# Added horizontal line for the median of avgYdsPerGamePerTeam
+
+# Calculate intercept and slope for AB Line
+coefs2 <- coef(lm(SumYdsGain ~ SumTDs, data = ydsGainVTd))
+p2 <- ggplot(ydsGainVTd, aes(SumTDs, SumYdsGain)) 
+p2 + geom_jitter() + 
+  xlab("Touchdowns") + 
+  ylab("Yards") + 
+  ggtitle("Touchdowns vs. Yards (Per Game)") +
+  geom_abline(intercept = coefs2[1], slope = coefs2[2], color = "blue") + 
+  scale_x_continuous(limits=c(0,9)) + 
+  scale_y_continuous(limits=c(0, 800))
+
+# Calculate intercept and slope for AB Line
+coefs3 <- coef(lm(SDYdsGain ~ SumTDs, data = ydsGainVTd))
+ggplot(ydsGainVTd, aes(SumTDs, SDYdsGain, group = "_id.GameID")) + 
+  geom_jitter() + 
+  xlab("Touchdowns") + 
+  ylab("StDev in Yards (Per Game)") + 
+  ggtitle("Touchdowns vs. Variance in Yards Per Game") + 
+  geom_abline(intercept = coefs3[1], slope = coefs3[2], color = "blue") + 
+  scale_x_continuous(limits=c(0,9)) + 
+  scale_y_continuous(limits=c(0, 17))
+
+# Calculate intercept and slope for AB Line
+coefs4 <- coef(lm(SumYdsGain ~ SDYdsGain, data = ydsGainVTd))
+ggplot(ydsGainVTd, aes(SDYdsGain, SumYdsGain, group = "_id.GameID")) + 
+  geom_jitter() + 
+  ylab("Yards") + 
+  xlab("StDev(Yards)") + 
+  ggtitle("Yards vs. StDev(Yards) per Game") + 
+  geom_abline(intercept = coefs4[1], slope = coefs4[2], color="blue") + 
+  scale_x_continuous(limits=c(0,17)) + 
+  scale_y_continuous(limits=c(0, 800))
+```
 
 # References
 Insert references here.
